@@ -1,9 +1,6 @@
 ﻿using Microsoft.Azure.CognitiveServices.Personalizer;
 using Microsoft.Azure.CognitiveServices.Personalizer.Models;
 
-using System;
-using System.Linq;
-
 namespace SnakeGamePersonalizer
 {
     class Programm
@@ -13,8 +10,8 @@ namespace SnakeGamePersonalizer
 
         static void Main(string[] args)
         {
-            SnakeGame sg = new SnakeGame();
-            sg.StartGame();
+            var game = new SnakeGame();
+            game.StartGame();
             //PersonalizerPlayGame();
         }
 
