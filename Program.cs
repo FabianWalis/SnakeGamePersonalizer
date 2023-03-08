@@ -12,7 +12,13 @@ namespace SnakeGamePersonalizer
         {
             var game = new SnakeGame();
             game.StartGame();
-            //PersonalizerPlayGame();
+            Thread.Sleep(1000);
+            do
+            {
+                //PersonalizerPlayGame();
+                Thread.Sleep(1000);
+            }
+            while (game.isRunning);
         }
 
         static void PersonalizerPlayGame() { 
@@ -25,6 +31,7 @@ namespace SnakeGamePersonalizer
 
             /* Explanation: Azure Personalizer is ranking rewards towards a certain context --> it makes an action depending on the given context
              * Plan: In order to make it play the game and decide where to go next, a current gamestate is presented and Personalizer has to choose the next move, sadly the time factor of the snake game can not be factored in
+             * which should not matter anyway as a computer would be able too react to each gamestate regardless of the speed
              */
             do
             {

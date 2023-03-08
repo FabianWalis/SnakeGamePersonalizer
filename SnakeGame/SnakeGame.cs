@@ -19,13 +19,66 @@ namespace SnakeGamePersonalizer
             snake = new List<Position>() {
                 new Position(6,6),
                 new Position(6,7),
-                new Position(6,8),
+                new Position(6,8)
             };
 
             head = snake.First();
             GenerateApple();
 
             isRunning = true;
+
+            PrintGameState();
+        }
+
+        /// <summary>
+        /// moves the snake in the wanted direction
+        /// </summary>
+        /// <param name="direction"></param>
+        public void MoveSnake(Direction direction)
+        {
+            Position tempHead = new Position(head.x, head.y);
+
+            switch (direction)
+            {
+                case Direction.Left:
+                    tempHead.x--;
+                    break;
+                case Direction.Right:
+                    tempHead.x++;
+                    break;
+                case Direction.Up:
+                    tempHead.y--;
+                    break;
+                case Direction.Down:
+                    tempHead.y++;
+                    break;
+                default:
+                    isRunning = false;
+                    return;
+            }
+
+            if (!IsInbounds(tempHead))
+            {
+                isRunning = false;
+                return;
+            }
+
+            //apple is not hit so we need to remove last element (as we previously added a new head)
+            if (!tempHead.Equals(apple))
+                snake.RemoveAt(snake.Count - 1);
+            else //apple is hit, we don't remove and calc new apple
+                GenerateApple();
+
+            //check if snake is hit
+            if (HitSnake(tempHead))
+            {
+                isRunning = false;
+                return;
+            }
+
+            //new head is inBounds and does not hit snake so we set it as new head
+            snake.Insert(0, tempHead);
+            head = snake.First();
 
             PrintGameState();
         }
@@ -49,30 +102,45 @@ namespace SnakeGamePersonalizer
         /// <returns>Apple is correct</returns>
         public bool AppleIsValid()
         {
-            if (apple.x < 0 && apple.y < 0 && apple.x > 11 && apple.y > 11) //out of bounds
+            if (!IsInbounds(apple))
                 return false;
 
-            foreach (var position in snake) //apple is in snake
-            {
-                if (apple.Equals(position)) return false;
-            }
+            if (HitSnake(apple))
+                return false;
+
             return true;
+        }
+
+        public bool IsInbounds(Position position)
+        {
+            if (position.x < 0 || position.y < 0 || position.x > 11 || position.y > 11) //out of bounds
+                return false;
+            return true;
+        }
+
+        public bool HitSnake(Position position)
+        {
+            foreach (var body in snake) //position is in snake
+            {
+                if (body.Equals(position)) return true;
+            }
+            return false;
         }
 
         public void PrintGameState()
         {
             Console.Clear();
 
-            for (int i = 1; i < 12; i++)
+            for (int i = 1; i < 13; i++)
             {
                 Console.SetCursorPosition(13, i);
                 Console.WriteLine("|");
                 Console.SetCursorPosition(0, i);
                 Console.WriteLine("|");
             }
-            for (int i = 0; i < 13; i++)
+            for (int i = 0; i < 14; i++)
             {
-                Console.SetCursorPosition(i, 12);
+                Console.SetCursorPosition(i, 13);
                 Console.WriteLine("¯");
                 Console.SetCursorPosition(i, 0);
                 Console.WriteLine("_");
