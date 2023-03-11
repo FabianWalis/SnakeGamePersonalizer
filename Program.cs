@@ -10,53 +10,50 @@ namespace SnakeGamePersonalizer
 
         static void Main(string[] args)
         {
-            var game = new SnakeGame();
-            game.StartGame();
-            Thread.Sleep(1000);
-            do
-            {
-                //PersonalizerPlayGame();
-                Thread.Sleep(1000);
-            }
-            while (game.isRunning);
-        }
-
-        static void PersonalizerPlayGame() { 
-            int iteration = 1;
-            bool runLoop = true;
-
-            IList<RankableAction> actions = GetActions();
-            PersonalizerClient client = InitializePersonalizerClient();
-
-
-            /* Explanation: Azure Personalizer is ranking rewards towards a certain context --> it makes an action depending on the given context
-             * Plan: In order to make it play the game and decide where to go next, a current gamestate is presented and Personalizer has to choose the next move, sadly the time factor of the snake game can not be factored in
-             * which should not matter anyway as a computer would be able too react to each gamestate regardless of the speed
-             */
-            do
-            {
-                
-            } while (runLoop);
-        }
-
-        /// <summary>
-        /// creates a new Personalizer Client with the globally specified Key and Endpoint
-        /// </summary>
-        static PersonalizerClient InitializePersonalizerClient()
-        {
-            PersonalizerClient client = new PersonalizerClient( new ApiKeyServiceClientCredentials(ApiKey));
+            //initiate personaliezr client
+            PersonalizerClient client = new PersonalizerClient(new ApiKeyServiceClientCredentials(ApiKey));
             client.Endpoint = ApiEndpoint;
 
-            return client;
-        }
+            //initiate values
+            string eventId = null;
+            List<object> gameState = new List<object>();
 
-        /// <summary>
-        /// Returns a list of actions to rank
-        /// </summary>
-        static IList<RankableAction> GetActions()
-        {
-            IList<RankableAction> actions = new List<RankableAction>();
-            return actions;
+            //get rankable actions aka moves
+            List<RankableAction> actions = new List<RankableAction>()
+            {
+                new RankableAction( Direction.Up.ToString(), new List<object> () {Direction.Up }),
+                new RankableAction( Direction.Down.ToString(), new List<object> () {Direction.Down }),
+                new RankableAction( Direction.Left.ToString(), new List<object> () {Direction.Left }),
+                new RankableAction( Direction.Right.ToString(), new List<object> () {Direction.Right }),
+            };
+
+            //start game --> everything after this part can be put in for loop or Parallel.Foreach to make this repeatable
+            var game = new SnakeGame();
+            game.StartGame();
+
+            Thread.Sleep(1000);
+
+            do
+            {
+                //get current gameState (apple, snake, head) and get eventId for this state
+                gameState = game.RetrieveGameState();
+                eventId = Guid.NewGuid().ToString();
+
+                //create the request and send it
+                RankRequest request = new RankRequest(actions, gameState, null, eventId);
+                RankResponse response = client.Rank(request);
+
+                //parse the response and move according to personalizer
+                int personalizerMove = int.Parse(response.RewardActionId);
+                game.MoveSnake((Direction) personalizerMove);
+
+                //rank the personalizer move
+                double reward = game.GetReward();
+                client.Reward(eventId, reward);
+
+                Thread.Sleep(1000);
+            }
+            while (game.GetIsRunning());
         }
     }
 }

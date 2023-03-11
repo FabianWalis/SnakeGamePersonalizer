@@ -9,10 +9,12 @@ namespace SnakeGamePersonalizer
 {
     public class SnakeGame
     {
-        public List<Position> snake;
-        public Position head;
-        public Position apple;
-        public bool isRunning;
+        private List<Position> snake;
+        private Position head;
+        private Position apple;
+        private bool isRunning;
+
+        private double reward;
 
         public void StartGame()
         {
@@ -36,6 +38,8 @@ namespace SnakeGamePersonalizer
         /// <param name="direction"></param>
         public void MoveSnake(Direction direction)
         {
+            reward = CalculateMoveReward();
+
             Position tempHead = new Position(head.x, head.y);
 
             switch (direction)
@@ -86,7 +90,7 @@ namespace SnakeGamePersonalizer
         /// <summary>
         /// generates a valid apple
         /// </summary>
-        public void GenerateApple()
+        private void GenerateApple()
         {
             var random = new Random();
             do
@@ -96,11 +100,31 @@ namespace SnakeGamePersonalizer
             while (!AppleIsValid());
         }
 
+        public List<object> RetrieveGameState()
+        {
+            var gameState = new List<object>()
+            {
+               new {apple = apple},
+               new {snake = snake },
+               new {head = head},
+               new {isRunning = isRunning}
+            };
+
+            return gameState;
+        }
+
+        private double CalculateMoveReward()
+        {
+            //TODO
+            return 0;
+        }
+
+
         /// <summary>
         /// Verifys valid position of the apple
         /// </summary>
         /// <returns>Apple is correct</returns>
-        public bool AppleIsValid()
+        private bool AppleIsValid()
         {
             if (!IsInbounds(apple))
                 return false;
@@ -111,14 +135,14 @@ namespace SnakeGamePersonalizer
             return true;
         }
 
-        public bool IsInbounds(Position position)
+        private bool IsInbounds(Position position)
         {
             if (position.x < 0 || position.y < 0 || position.x > 11 || position.y > 11) //out of bounds
                 return false;
             return true;
         }
 
-        public bool HitSnake(Position position)
+        private bool HitSnake(Position position)
         {
             foreach (var body in snake) //position is in snake
             {
@@ -156,6 +180,16 @@ namespace SnakeGamePersonalizer
             }
 
             Console.SetCursorPosition(0, 14);
+        }
+
+        public double GetReward()
+        {
+            return reward;
+        }
+
+        public bool GetIsRunning()
+        {
+            return isRunning;
         }
     }
 }
