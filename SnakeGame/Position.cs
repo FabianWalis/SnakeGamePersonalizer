@@ -22,6 +22,10 @@ namespace SnakeGamePersonalizer
             return false;
         }
 
+        public string ToString()
+        {
+            return $"({this.x},{this.y})";
+        }
 
     }
 }

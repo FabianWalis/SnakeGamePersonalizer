@@ -16,44 +16,50 @@ namespace SnakeGamePersonalizer
 
             //initiate values
             string eventId = null;
-            List<object> gameState = new List<object>();
+            IList<object> gameState = new List<object>();
 
             //get rankable actions aka moves
-            List<RankableAction> actions = new List<RankableAction>()
+            IList<RankableAction> actions = new List<RankableAction>()
             {
-                new RankableAction( Direction.Up.ToString(), new List<object> () {Direction.Up }),
-                new RankableAction( Direction.Down.ToString(), new List<object> () {Direction.Down }),
-                new RankableAction( Direction.Left.ToString(), new List<object> () {Direction.Left }),
-                new RankableAction( Direction.Right.ToString(), new List<object> () {Direction.Right }),
+                new RankableAction( id: "0", features: new List<object> () { new { direction = (int) Direction.Up }}),
+                new RankableAction( id: "1", features: new List<object> () { new { direction = (int) Direction.Down } }),
+                new RankableAction( id: "2", features: new List<object> () { new { direction = (int) Direction.Left } }),
+                new RankableAction( id: "3", features: new List<object> () { new { direction = (int) Direction.Right }}),
             };
 
-            //start game --> everything after this part can be put in for loop or Parallel.Foreach to make this repeatable
-            var game = new SnakeGame();
-            game.StartGame();
-
-            Thread.Sleep(1000);
-
-            do
+            int iterations = 10;
+            //this can be in a parallel foreach but data has to be locked and stuff
+            for (int i = 0; i < iterations; i++)
             {
-                //get current gameState (apple, snake, head) and get eventId for this state
-                gameState = game.RetrieveGameState();
-                eventId = Guid.NewGuid().ToString();
-
-                //create the request and send it
-                RankRequest request = new RankRequest(actions, gameState, null, eventId);
-                RankResponse response = client.Rank(request);
-
-                //parse the response and move according to personalizer
-                int personalizerMove = int.Parse(response.RewardActionId);
-                game.MoveSnake((Direction) personalizerMove);
-
-                //rank the personalizer move
-                double reward = game.GetReward();
-                client.Reward(eventId, reward);
+                var game = new SnakeGame();
+                game.StartGame();
 
                 Thread.Sleep(1000);
+
+                do
+                {
+                    //get current gameState (apple, snake, head) and get eventId for this state
+                    gameState = game.RetrieveGameState();
+                    eventId = Guid.NewGuid().ToString();
+
+                    //create the request and send it
+                    RankRequest request = new RankRequest(actions: actions, contextFeatures: gameState, eventId: eventId);
+                    eventId = request.EventId;
+
+                    RankResponse response = client.Rank(request);
+
+                    //parse the response and move according to personalizer
+                    int personalizerMove = int.Parse(response.RewardActionId);
+                    game.MoveSnake((Direction)personalizerMove);
+
+                    //rank the personalizer move
+                    double reward = game.GetReward();
+                    client.Reward(eventId, reward);
+
+                    Thread.Sleep(1000);
+                }
+                while (game.GetIsRunning());
             }
-            while (game.GetIsRunning());
         }
     }
 }

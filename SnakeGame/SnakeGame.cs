@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime;
+using System.Runtime.InteropServices;
 
 namespace SnakeGamePersonalizer
 {
@@ -100,14 +101,12 @@ namespace SnakeGamePersonalizer
             while (!AppleIsValid());
         }
 
-        public List<object> RetrieveGameState()
+        public IList<object> RetrieveGameState()
         {
-            var gameState = new List<object>()
+            IList<object> gameState = new List<object>()
             {
-               new {apple = apple},
-               new {snake = snake },
-               new {head = head},
-               new {isRunning = isRunning}
+                new GameState(apple, snake, head)
+
             };
 
             return gameState;
@@ -116,7 +115,7 @@ namespace SnakeGamePersonalizer
         private double CalculateMoveReward()
         {
             //TODO
-            return 0;
+            return 0.5;
         }
 
 
@@ -190,6 +189,6 @@ namespace SnakeGamePersonalizer
         public bool GetIsRunning()
         {
             return isRunning;
-        }
+        }   
     }
 }
