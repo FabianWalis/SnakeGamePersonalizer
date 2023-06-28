@@ -15,8 +15,6 @@ namespace SnakeGamePersonalizer
         private Position apple;
         private bool isRunning;
 
-        private double reward;
-
         public void StartGame()
         {
             snake = new List<Position>() {
@@ -39,8 +37,6 @@ namespace SnakeGamePersonalizer
         /// <param name="direction"></param>
         public void MoveSnake(Direction direction)
         {
-            reward = CalculateMoveReward();
-
             Position tempHead = new Position(head.x, head.y);
 
             switch (direction)
@@ -105,19 +101,12 @@ namespace SnakeGamePersonalizer
         {
             IList<object> gameState = new List<object>()
             {
-                new GameState(apple, snake, head)
+                new GameState(apple, snake, head, snake.Count(), isRunning)
 
             };
 
             return gameState;
         }
-
-        private double CalculateMoveReward()
-        {
-            //TODO
-            return 0.5;
-        }
-
 
         /// <summary>
         /// Verifys valid position of the apple
@@ -181,14 +170,24 @@ namespace SnakeGamePersonalizer
             Console.SetCursorPosition(0, 14);
         }
 
-        public double GetReward()
-        {
-            return reward;
-        }
-
         public bool GetIsRunning()
         {
             return isRunning;
         }   
+
+        public List<Position> GetSnake()
+        {
+            return snake;
+        }
+
+        public Position GetApple()
+        {
+            return apple;
+        }
+
+        public Position GetHead()
+        {
+            return head;
+        }
     }
 }
